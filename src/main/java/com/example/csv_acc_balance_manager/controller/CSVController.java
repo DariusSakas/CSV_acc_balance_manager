@@ -27,7 +27,8 @@ public class CSVController {
 
         try {
             csvService.saveCSVTransactionsIntoDB(csvFile);
-        } catch (InvalidValueProvided e) {
+
+        } catch (Exception e) {
             return new ResponseEntity<>("Unable to convert and save CSV file to DB", HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return new ResponseEntity<>("CSV converted and saved successfully", HttpStatus.OK);
