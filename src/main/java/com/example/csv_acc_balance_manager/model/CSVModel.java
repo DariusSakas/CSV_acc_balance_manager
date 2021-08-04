@@ -1,44 +1,37 @@
 package com.example.csv_acc_balance_manager.model;
 
+import com.example.csv_acc_balance_manager.exception.InvalidValueProvided;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({ "accNumber", "operationDate", "beneficiary",
-        "comment", "amount", "currency" })
 public class CSVModel {
 
-    private Long transactionId;
-    private int accNumber;
+    private int account;
     private String operationDate;
     private String beneficiary;
     private double amount;
     private String currency;
     private String comment;
 
-    public CSVModel(Long transactionId, int accNumber, String operationDate, String beneficiary, double amount, String currency, String comment) {
+    public CSVModel( int account, String operationDate, String beneficiary, double amount, String currency, String comment) {
 
-        this.transactionId = transactionId;
-        this.accNumber = accNumber;
+        this.account = account;
         this.operationDate = operationDate;
         this.beneficiary = beneficiary;
         this.amount = amount;
         this.currency = currency;
         this.comment = comment;
+
     }
 
-    public Long getTransactionId() {
-        return transactionId;
+    public CSVModel() {
     }
 
-    public void setTransactionId(Long transactionId) {
-        this.transactionId = transactionId;
-    }
-
-    public int getAccNumber() {
-        return accNumber;
+    public int getAccNumber()  {
+        return account;
     }
 
     public void setAccNumber(int accNumber) {
-        this.accNumber = accNumber;
+        this.account = accNumber;
     }
 
     public String getOperationDate() {
@@ -79,6 +72,18 @@ public class CSVModel {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    @Override
+    public String toString() {
+        return "CSVModel{" +
+                "account=" + account +
+                ", operationDate='" + operationDate + '\'' +
+                ", beneficiary='" + beneficiary + '\'' +
+                ", amount=" + amount +
+                ", currency='" + currency + '\'' +
+                ", comment='" + comment + '\'' +
+                '}';
     }
 }
 
