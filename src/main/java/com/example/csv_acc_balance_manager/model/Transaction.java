@@ -3,7 +3,6 @@ package com.example.csv_acc_balance_manager.model;
 import com.example.csv_acc_balance_manager.exception.InvalidValueProvided;
 
 import javax.persistence.*;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -26,12 +25,11 @@ public class Transaction {
     private String currency;
 
     private String comment;
-    private double finalBalance;
 
     public Transaction() {
     }
 
-    public Transaction(Long transactionId, int accNumber, String beneficiary, String operationDate, double amount, String currency, String comment, double finalBalance) {
+    public Transaction(Long transactionId, int accNumber, String beneficiary, String operationDate, double amount, String currency, String comment) {
         this.transactionId = transactionId;
         this.accNumber = accNumber;
         this.beneficiary = beneficiary;
@@ -39,25 +37,16 @@ public class Transaction {
         this.amount = amount;
         this.currency = currency;
         this.comment = comment;
-        this.finalBalance = finalBalance;
+
     }
 
-    public Transaction(int accNumber, String beneficiary, String operationDate, double amount, String currency, String comment, double finalBalance) {
+    public Transaction(int accNumber, String beneficiary, String operationDate, double amount, String currency, String comment) {
         this.accNumber = accNumber;
         this.beneficiary = beneficiary;
         this.operationDate = operationDate;
         this.amount = amount;
         this.currency = currency;
         this.comment = comment;
-        this.finalBalance = finalBalance;
-    }
-
-    public Long getTransactionId() {
-        return transactionId;
-    }
-
-    public void setTransactionId(Long transactionId) {
-        this.transactionId = transactionId;
     }
 
     public int getAccNumber() {
@@ -65,10 +54,11 @@ public class Transaction {
     }
 
     public void setAccNumber(int accNumber) throws InvalidValueProvided {
-        if(accNumber > 0) {
+        if (accNumber > 0) {
             this.accNumber = accNumber;
-        }
-        throw new InvalidValueProvided("Invalid account number value");
+        } else
+            throw new InvalidValueProvided("Invalid account number value");
+
     }
 
     public String getBeneficiary() {
@@ -76,10 +66,10 @@ public class Transaction {
     }
 
     public void setBeneficiary(String beneficiary) throws InvalidValueProvided {
-        if (!beneficiary.isEmpty()){
+        if (!beneficiary.isEmpty()) {
             this.beneficiary = beneficiary;
-        }
-        throw new InvalidValueProvided("Invalid beneficiary value");
+        } else
+            throw new InvalidValueProvided("Invalid beneficiary value");
 
     }
 
@@ -88,16 +78,16 @@ public class Transaction {
     }
 
     public void setOperationDate(String operationDate) throws InvalidValueProvided {
-        if(!operationDate.isEmpty()) {
-            try{
-                Date date =new SimpleDateFormat("dd/MM/yyyy").parse(operationDate);
+        if (!operationDate.isEmpty()) {
+            try {
+                Date date = new SimpleDateFormat("dd/MM/yyyy").parse(operationDate);
                 this.operationDate = operationDate;
             } catch (ParseException e) {
                 e.printStackTrace();
                 throw new InvalidValueProvided("Invalid date value");
             }
-        }
-        throw new InvalidValueProvided("Invalid date value");
+        } else
+            throw new InvalidValueProvided("Invalid date value");
     }
 
     public double getAmount() {
@@ -105,9 +95,9 @@ public class Transaction {
     }
 
     public void setAmount(double amount) throws InvalidValueProvided {
-        if(amount > 0) {
+        if (amount > 0) {
             this.amount = amount;
-        }
+        }else
         throw new InvalidValueProvided("Invalid amount value");
     }
 
@@ -116,9 +106,9 @@ public class Transaction {
     }
 
     public void setCurrency(String currency) throws InvalidValueProvided {
-        if(!currency.isEmpty()) {
+        if (!currency.isEmpty()) {
             this.currency = currency;
-        }
+        }else
         throw new InvalidValueProvided("Invalid amount value");
     }
 
@@ -130,11 +120,4 @@ public class Transaction {
         this.comment = comment;
     }
 
-    public double getFinalBalance() {
-        return finalBalance;
-    }
-
-    public void setFinalBalance(double finalBalance) {
-        this.finalBalance = finalBalance;
-    }
 }

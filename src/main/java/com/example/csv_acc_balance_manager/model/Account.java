@@ -1,6 +1,7 @@
 package com.example.csv_acc_balance_manager.model;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 public class Account {
@@ -13,26 +14,21 @@ public class Account {
     @Column(nullable = false)
     private int balance;
 
+
     public Account(Long accountId, String name, int balance) {
         this.accountId = accountId;
         this.name = name;
         this.balance = balance;
     }
 
-    public Account(String name, int balance) {
-        this.name = name;
-        this.balance = balance;
-    }
-
     public Account() {
-
     }
 
-    public Long getId() {
+    public Long getAccountId() {
         return accountId;
     }
 
-    public void setId(Long accountId) {
+    public void setAccountId(Long accountId) {
         this.accountId = accountId;
     }
 
@@ -51,4 +47,6 @@ public class Account {
     public void setBalance(int balance) {
         this.balance = balance;
     }
+
+
 }

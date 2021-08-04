@@ -1,7 +1,5 @@
 package com.example.csv_acc_balance_manager.service;
 
-import com.example.csv_acc_balance_manager.exception.InvalidValueProvided;
-import com.example.csv_acc_balance_manager.model.CSVModel;
 import com.example.csv_acc_balance_manager.model.Transaction;
 import com.example.csv_acc_balance_manager.repository.TransactionRepository;
 import org.apache.commons.csv.CSVFormat;
@@ -11,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -27,56 +24,36 @@ public class CSVService {
     }
 
     public void saveCSVTransactionsIntoDB(MultipartFile csvFile) throws Exception {
-        List<CSVModel> transactionsCSVModelType = formatCSVFileIntoCSVModelList(csvFile);
+        List<Transaction> transactions = formatCSVFileIntoCSVModelList(csvFile);
+        for (Transaction transaction : transactions) {
 
-        List<Transaction> transactions = new ArrayList<>();
-
-        transactionsCSVModelType.forEach(transactionCSVtype -> {
-            try {
-                transactions.add(generateNewTransactionObject(transactionCSVtype, transactionsCSVModelType));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-
+        }
     }
 
-    private Transaction generateNewTransactionObject(CSVModel csvModel, List<CSVModel> transactionsCSVModelType ) throws Exception {
+    private List<Transaction> formatCSVFileIntoCSVModelList(MultipartFile csvFile) throws Exception {
+        List<Transaction> transactionList = new ArrayList<>();
         Transaction transaction = new Transaction();
-
-        transaction.setAccNumber(csvModel.getAccNumber());
-        transaction.setOperationDate(csvModel.getOperationDate());
-        transaction.setBeneficiary(csvModel.getBeneficiary());
-        transaction.setComment(csvModel.getComment());
-        transaction.setAmount(csvModel.getAmount());
-        transaction.setCurrency(csvModel.getCurrency());
-
-        transaction.setFinalBalance(calculateFinalBalanceByDate(csvModel.getOperationDate(), transactionsCSVModelType));
-
-        return transaction;
-    }
-
-    private double calculateFinalBalanceByDate(String operationDate, List<CSVModel> transactionsCSVModelType) {
-        return 0;
-    }
-
-    private List<CSVModel> formatCSVFileIntoCSVModelList(MultipartFile csvFile) throws IOException {
-        List<CSVModel> csvModels = new ArrayList<>();
 
         BufferedReader inputFile = new BufferedReader(new InputStreamReader(csvFile.getInputStream(), StandardCharsets.UTF_8));
         CSVParser csvParser = new CSVParser(inputFile, CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim());
         Iterable<CSVRecord> csvRecords = csvParser.getRecords();
 
-        csvRecords.forEach(e ->csvModels.add(new CSVModel(
-                Integer.parseInt(e.get(0)),
-                e.get(1),
-                e.get(2),
-                Double.parseDouble(e.get(4)),
-                e.get(5),
-                e.get(3)
-                )));
+        csvRecords.forEach(csvRecord -> {
+                    try {
+                        transaction.setAccNumber(Integer.parseInt(csvRecord.get(0)));
+                        transaction.setOperationDate(csvRecord.get(1));
+                        transaction.setBeneficiary(csvRecord.get(2));
+                        transaction.setComment(csvRecord.get(3));
+                        transaction.setAmount(Double.parseDouble(csvRecord.get(4)));
+                        transaction.setCurrency(csvRecord.get(5));
+                        transactionList.add(transaction);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+        );
 
-        return csvModels;
+        return transactionList;
     }
 
 }
