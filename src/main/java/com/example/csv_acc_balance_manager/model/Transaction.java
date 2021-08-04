@@ -84,7 +84,7 @@ public class Transaction {
                 this.operationDate = operationDate;
             } catch (ParseException e) {
                 e.printStackTrace();
-                throw new InvalidValueProvided("Invalid date value");
+                throw new InvalidValueProvided("Invalid date format or value");
             }
         } else
             throw new InvalidValueProvided("Invalid date value");
