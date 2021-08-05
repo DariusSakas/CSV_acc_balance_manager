@@ -91,7 +91,6 @@ public class CSVService {
         }catch (IOException e){
             e.printStackTrace();
             throw new RuntimeException("Failed to import data to CSV from DB");
-
         }
 
     }

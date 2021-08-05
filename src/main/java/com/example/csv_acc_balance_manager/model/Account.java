@@ -28,8 +28,6 @@ public class Account {
         this.accountId = accountId;
     }
 
-
-
     public int getBalance() {
         return balance;
     }

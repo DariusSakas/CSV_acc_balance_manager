@@ -24,12 +24,13 @@ public class CSVController {
 
     private final CSVService csvService;
     private final static String FILE_NAME = "transactions.csv";
+
     public CSVController(CSVService csvService) {
         this.csvService = csvService;
     }
 
     @PostMapping("/postCSV")
-    public ResponseEntity<String> saveTransactionsToDB (@RequestParam("csvFile") MultipartFile csvFile){
+    public ResponseEntity<String> saveTransactionsToDB(@RequestParam("csvFile") MultipartFile csvFile) {
 
         try {
             csvService.saveCSVTransactionsIntoDB(csvFile);
@@ -41,21 +42,23 @@ public class CSVController {
     }
 
     @GetMapping("/getCSV")
-    public ResponseEntity<Resource> getTransactionsFromDBasCSVFile(@RequestParam(value = "fromDate", required = false) String fromDate, @RequestParam(value = "toDate", required = false) String toDate){
-        InputStreamResource file = null;
+    public ResponseEntity<?> getTransactionsFromDBasCSVFile(@RequestParam(value = "fromDate", required = false) String fromDate, @RequestParam(value = "toDate", required = false) String toDate) {
         try {
             ByteArrayInputStream byteArrayInputStream = csvService.getCSVFile(fromDate, toDate);
-            file = new InputStreamResource(byteArrayInputStream);
+            InputStreamResource file = new InputStreamResource(byteArrayInputStream);
+
+
+            MediaType mediaType = MediaTypeFactory.getMediaType(file).orElse(MediaType.APPLICATION_OCTET_STREAM);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(mediaType);
+            ContentDisposition disposition = ContentDisposition.attachment().filename(Objects.requireNonNull(FILE_NAME)).build();
+            headers.setContentDisposition(disposition);
+
+            return new ResponseEntity<>(file, headers, HttpStatus.OK);
         } catch (InvalidValueProvided | ParseException e) {
             e.printStackTrace();
         }
-        MediaType mediaType = MediaTypeFactory.getMediaType(file).orElse(MediaType.APPLICATION_OCTET_STREAM);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(mediaType);
-        ContentDisposition disposition = ContentDisposition.attachment().filename(Objects.requireNonNull(FILE_NAME)).build();
-        headers.setContentDisposition(disposition);
-
-        return new ResponseEntity<>(file, headers, HttpStatus.OK);
+        return new ResponseEntity<>("Unable to parse transactions from DB to .csv file. Check data value for dd/MM/yyyy", HttpStatus.OK);
     }
 }
