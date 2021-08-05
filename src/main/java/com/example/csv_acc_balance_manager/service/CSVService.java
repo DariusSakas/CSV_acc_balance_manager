@@ -12,8 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -21,7 +19,8 @@ import java.util.stream.Collectors;
 @Service
 public class CSVService {
 
-    private static final CSVFormat format = CSVFormat.DEFAULT.withHeader("Account", "Date", "Beneficiary", "Comment", "Amount", "Currency");
+    private static final CSVFormat format = CSVFormat.DEFAULT.withHeader(
+            "Account", "Date", "Beneficiary", "Comment", "Amount", "Currency");
     private static final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
     private static final String CSV_FILE_NAME = "./transactions.csv";
 
@@ -76,20 +75,25 @@ public class CSVService {
 
     public ByteArrayInputStream getCSVFile(String dateFrom, String dateTo) throws InvalidValueProvided, ParseException {
 
-        String dateFromValid = getValidDateFormatElseNull(dateFrom);
-        String dateToValid = getValidDateFormatElseNull(dateTo);
+        String dateFromValid = getValidDateFormatElseEmpty(dateFrom);
+        String dateToValid = getValidDateFormatElseEmpty(dateTo);
 
         List<Transaction> transactionList = getTransactionsList(dateFromValid, dateToValid);
+
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             CSVPrinter csvPrinter = new CSVPrinter(new PrintWriter(outputStream), format);
-
             printTransactionsToCSV(transactionList, csvPrinter);
 
-        }catch (Exception e){
+            csvPrinter.flush();
+            return new ByteArrayInputStream(outputStream.toByteArray());
+
+        }catch (IOException e){
             e.printStackTrace();
+            throw new RuntimeException("Failed to import data to CSV from DB");
+
         }
-        return null;
+
     }
 
     private void printTransactionsToCSV(List<Transaction> transactionList, CSVPrinter csvPrinter) {
@@ -161,8 +165,8 @@ public class CSVService {
         }).collect(Collectors.toList());
     }
 
-    public String getValidDateFormatElseNull(String dateToCheck) throws InvalidValueProvided, ParseException {
-        if (!dateToCheck.isEmpty()) {
+    public String getValidDateFormatElseEmpty(String dateToCheck) throws InvalidValueProvided, ParseException {
+        if (dateToCheck != null && !dateToCheck.isEmpty()) {
             try {
                 Date date = new SimpleDateFormat("dd/MM/yyyy").parse(dateToCheck);
                 return dateToCheck;
@@ -170,9 +174,9 @@ public class CSVService {
                 e.printStackTrace();
                 throw new InvalidValueProvided("Invalid date format or value");
             }
-        } else if (dateToCheck.isEmpty()) {
-            return null;
+        } else if (dateToCheck == null || dateToCheck.isEmpty()) {
+            return "";
         }
-        return null;
+        return "";
     }
 }
