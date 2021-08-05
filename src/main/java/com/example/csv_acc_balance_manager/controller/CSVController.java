@@ -23,6 +23,7 @@ import java.util.Objects;
 public class CSVController {
 
     private final CSVService csvService;
+
     private final static String FILE_NAME = "transactions.csv";
 
     public CSVController(CSVService csvService) {
@@ -46,7 +47,6 @@ public class CSVController {
         try {
             ByteArrayInputStream byteArrayInputStream = csvService.getCSVFile(fromDate, toDate);
             InputStreamResource file = new InputStreamResource(byteArrayInputStream);
-
 
             MediaType mediaType = MediaTypeFactory.getMediaType(file).orElse(MediaType.APPLICATION_OCTET_STREAM);
 

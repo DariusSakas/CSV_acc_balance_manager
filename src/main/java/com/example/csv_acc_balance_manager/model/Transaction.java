@@ -37,7 +37,6 @@ public class Transaction {
         this.amount = amount;
         this.currency = currency;
         this.comment = comment;
-
     }
 
     public Transaction(int accNumber, String beneficiary, String operationDate, double amount, String currency, String comment) {
