@@ -66,7 +66,7 @@ public class Transaction {
     }
 
     public void setBeneficiary(String beneficiary) throws InvalidValueProvided {
-        if (!beneficiary.isEmpty()) {
+        if (!beneficiary.trim().isEmpty() ) {
             this.beneficiary = beneficiary;
         } else
             throw new InvalidValueProvided("Invalid beneficiary value");
@@ -87,7 +87,7 @@ public class Transaction {
                 throw new InvalidValueProvided("Invalid date format or value");
             }
         } else
-            throw new InvalidValueProvided("Invalid date value");
+            throw new InvalidValueProvided("Invalid date value or not provided");
     }
 
     public double getAmount() {
@@ -106,10 +106,10 @@ public class Transaction {
     }
 
     public void setCurrency(String currency) throws InvalidValueProvided {
-        if (!currency.isEmpty()) {
+        if (!currency.trim().isEmpty()) {
             this.currency = currency;
         }else
-        throw new InvalidValueProvided("Invalid amount value");
+        throw new InvalidValueProvided("Invalid currency value");
     }
 
     public String getComment() {
@@ -117,7 +117,8 @@ public class Transaction {
     }
 
     public void setComment(String comment) {
-        this.comment = comment;
+        if(comment.length() > 20)
+        this.comment = comment.substring(0, 20) ;
     }
 
 }
