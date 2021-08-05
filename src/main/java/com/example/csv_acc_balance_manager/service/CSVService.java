@@ -3,10 +3,7 @@ package com.example.csv_acc_balance_manager.service;
 import com.example.csv_acc_balance_manager.exception.InvalidValueProvided;
 import com.example.csv_acc_balance_manager.model.Transaction;
 import com.example.csv_acc_balance_manager.repository.TransactionRepository;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.csv.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,18 +14,18 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Service
 public class CSVService {
 
+    private static final CSVFormat format = CSVFormat.DEFAULT.withHeader("Account", "Date", "Beneficiary", "Comment", "Amount", "Currency");
+    private static final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+    private static final String CSV_FILE_NAME = "./transactions.csv";
+
     private final TransactionRepository transactionRepository;
-    private final String CSV_FILE_NAME = "./transactions.csv";
 
     public CSVService(TransactionRepository transactionRepository) {
         this.transactionRepository = transactionRepository;
@@ -47,6 +44,15 @@ public class CSVService {
         Iterable<CSVRecord> csvRecords = csvParser.getRecords();
         AtomicBoolean isIterationSuccessful = new AtomicBoolean(false);
 
+        parseCSVIntoTransactionList(transactionList, csvRecords, isIterationSuccessful);
+
+        if (isIterationSuccessful.get())
+            return transactionList;
+        else
+            throw new InvalidValueProvided("Invalid value provided. Check CSV files values.");
+    }
+
+    private void parseCSVIntoTransactionList(List<Transaction> transactionList, Iterable<CSVRecord> csvRecords, AtomicBoolean isIterationSuccessful) {
         csvRecords.forEach(csvRecord -> {
                     try {
                         isIterationSuccessful.set(false);
@@ -66,31 +72,72 @@ public class CSVService {
                     }
                 }
         );
-
-        if (isIterationSuccessful.get())
-            return transactionList;
-        else
-            throw new InvalidValueProvided("Invalid value provided. Check CSV files values.");
     }
-    public CSVPrinter getCSVFile(String dateFrom, String dateTo) throws InvalidValueProvided, ParseException {
+
+    public ByteArrayInputStream getCSVFile(String dateFrom, String dateTo) throws InvalidValueProvided, ParseException {
+
         String dateFromValid = getValidDateFormatElseNull(dateFrom);
         String dateToValid = getValidDateFormatElseNull(dateTo);
 
-        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-        List<Transaction> transactions = transactionRepository.findAll();
-        List<Transaction> sortedTransactionsList = new ArrayList<>();
+        List<Transaction> transactionList = getTransactionsList(dateFromValid, dateToValid);
+        try {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            CSVPrinter csvPrinter = new CSVPrinter(new PrintWriter(outputStream), format);
 
-        if(dateFromValid != null && dateToValid == null){
-            sortedTransactionsList = getTransactionsListValidFrom(dateFromValid, dateFormat, transactions);
-        }else if(dateFromValid != null && dateToValid != null){
-            sortedTransactionsList = getTransactionsListValidFromTo(dateFromValid, dateToValid, dateFormat, transactions);
+            printTransactionsToCSV(transactionList, csvPrinter);
+
+        }catch (Exception e){
+            e.printStackTrace();
         }
-
         return null;
     }
 
-    private List<Transaction> getTransactionsListValidFromTo(String dateFromValid, String dateToValid, DateFormat dateFormat, List<Transaction> transactions) {
-        return transactions.stream().filter(t->
+    private void printTransactionsToCSV(List<Transaction> transactionList, CSVPrinter csvPrinter) {
+        transactionList.forEach(t ->
+        {
+            try {
+                csvPrinter.printRecord(Arrays.asList(
+                        String.valueOf(t.getAccNumber()),
+                        t.getOperationDate(),
+                        t.getBeneficiary(),
+                        t.getComment(),
+                        t.getAmount(),
+                        t.getCurrency()
+                        ));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+
+    private List<Transaction> getTransactionsList(String dateFromValid, String dateToValid) {
+        List<Transaction> transactions = transactionRepository.findAll();
+
+        if (!dateFromValid.isEmpty() && dateToValid.isEmpty()) {
+            return getTransactionsListValidFrom(dateFromValid, transactions);
+        } else if (!dateFromValid.isEmpty() && !dateToValid.isEmpty()) {
+            return getTransactionsListValidFromTo(dateFromValid, dateToValid, transactions);
+        } else if (dateFromValid.isEmpty() && !dateToValid.isEmpty()) {
+            return getTransactionsListValidTo(dateToValid, transactions);
+        } else
+            return transactions;
+    }
+
+    private List<Transaction> getTransactionsListValidTo(String dateToValid, List<Transaction> transactions) {
+        return transactions.stream().filter(t ->
+        {
+            try {
+                return dateFormat.parse(t.getOperationDate()).before(dateFormat.parse(dateToValid));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            return false;
+        }).collect(Collectors.toList());
+    }
+
+    private List<Transaction> getTransactionsListValidFromTo(String dateFromValid, String dateToValid, List<Transaction> transactions) {
+        return transactions.stream().filter(t ->
         {
             try {
                 return dateFormat.parse(t.getOperationDate()).after(dateFormat.parse(dateFromValid)) &&
@@ -102,8 +149,8 @@ public class CSVService {
         }).collect(Collectors.toList());
     }
 
-    private List<Transaction> getTransactionsListValidFrom(String dateFromValid, DateFormat dateFormat, List<Transaction> transactions) {
-        return transactions.stream().filter(t->
+    private List<Transaction> getTransactionsListValidFrom(String dateFromValid, List<Transaction> transactions) {
+        return transactions.stream().filter(t ->
         {
             try {
                 return dateFormat.parse(t.getOperationDate()).after(dateFormat.parse(dateFromValid));
