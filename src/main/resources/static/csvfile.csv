@@ -1,0 +1,5 @@
+﻿Account,Date,Beneficiary,Comment,Amount,Currency
+1,27/02/2022,2,test,23,EU
+2,1/10/2021,1,,21.3,EU
+3,11/10/2021,2,For potatoes,421.2,USD
+4,27/12/2021,2,-,4221,EU

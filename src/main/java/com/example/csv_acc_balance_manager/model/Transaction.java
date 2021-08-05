@@ -116,8 +116,9 @@ public class Transaction {
     }
 
     public void setComment(String comment) {
-        if(comment.length() > 20)
-        this.comment = comment.substring(0, 20) ;
+        if(comment.length() > 20) {
+            this.comment = comment.substring(0, 20);
+        }else this.comment = comment;
     }
 
 }

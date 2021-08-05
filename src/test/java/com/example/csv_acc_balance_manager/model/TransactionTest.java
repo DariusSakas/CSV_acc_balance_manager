@@ -3,8 +3,6 @@ package com.example.csv_acc_balance_manager.model;
 import com.example.csv_acc_balance_manager.exception.InvalidValueProvided;
 import org.junit.jupiter.api.Test;
 
-import java.text.ParseException;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class TransactionTest {

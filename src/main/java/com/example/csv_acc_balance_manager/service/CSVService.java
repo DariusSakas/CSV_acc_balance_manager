@@ -9,13 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 @Service
 public class CSVService {
@@ -55,7 +51,6 @@ public class CSVService {
             e.printStackTrace();
             throw new RuntimeException("Failed to import data to CSV from DB");
         }
-
     }
 
     private void printTransactionsToCSV(List<Transaction> transactionList, CSVPrinter csvPrinter) {
