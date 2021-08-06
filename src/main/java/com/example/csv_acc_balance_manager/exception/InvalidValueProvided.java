@@ -4,4 +4,5 @@ public class InvalidValueProvided extends Exception{
     public InvalidValueProvided(String message) {
         super(message);
     }
+
 }
