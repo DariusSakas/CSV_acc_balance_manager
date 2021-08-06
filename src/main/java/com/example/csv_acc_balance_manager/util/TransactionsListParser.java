@@ -16,13 +16,20 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+
+/*
+Class holds all methods to parse all .csv file data into List<Transaction>
+and fetch data from DB to create new .csv file at CSVController controller class.
+ */
 @Component
 public class TransactionsListParser {
 
+    //Data format will used to check if valid data format used in .csv file transaction
     private static final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
     private final TransactionRepository transactionRepository;
@@ -31,12 +38,22 @@ public class TransactionsListParser {
         this.transactionRepository = transactionRepository;
     }
 
+    /*
+    InputStreamReader is a bridge from byte streams to character streams: It reads bytes and decodes them into characters using a specified charset
+    BufferedReader reads text from a character-input stream, buffering characters to provide for the efficient reading of characters, arrays, and lines.
+    Parses CSV files according to the specified format.
+
+    .parseCSVIntoTransactionList() method used to iterate through records and collect data from each record,
+    set it to Transaction object using Transaction setters and add each element to the list,
+    that will be returned by .formatCSVFileIntoCSVModelList() method.
+     */
     public List<Transaction> formatCSVFileIntoCSVModelList(MultipartFile csvFile) throws Exception {
         List<Transaction> transactionList = new ArrayList<>();
 
         BufferedReader inputFile = new BufferedReader(new InputStreamReader(csvFile.getInputStream(), StandardCharsets.UTF_8));
         CSVParser csvParser = new CSVParser(inputFile, CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim());
         Iterable<CSVRecord> csvRecords = csvParser.getRecords();
+
         AtomicBoolean isIterationSuccessful = new AtomicBoolean(false);
 
         parseCSVIntoTransactionList(transactionList, csvRecords, isIterationSuccessful);
@@ -47,6 +64,12 @@ public class TransactionsListParser {
             throw new InvalidValueProvided("Invalid value provided. Check CSV files values.");
     }
 
+    /*
+    Iterates through csvRecords and add each record data to the Transaction object using setters.
+    Setters have validation (check Transaction.class). If validation fails isIterationSuccessful boolean value
+    false is returned by this method and InvalidValueProvided exception thrown at .formatCSVFileIntoCSVModelList()
+    method. Else all data is set successfully.
+     */
     public void parseCSVIntoTransactionList(List<Transaction> transactionList, Iterable<CSVRecord> csvRecords, AtomicBoolean isIterationSuccessful) {
         csvRecords.forEach(csvRecord -> {
                     try {
@@ -59,6 +82,7 @@ public class TransactionsListParser {
                         transaction.setComment(csvRecord.get(3));
                         transaction.setAmount(Double.parseDouble(csvRecord.get(4)));
                         transaction.setCurrency(csvRecord.get(5));
+
                         transactionList.add(transaction);
 
                         isIterationSuccessful.set(true);
@@ -69,6 +93,7 @@ public class TransactionsListParser {
         );
     }
 
+    //Fetch data from DB. Check if dateFromValid or dateToValid has any data. According to that method is called.
     public List<Transaction> getTransactionsList(String dateFromValid, String dateToValid) {
         List<Transaction> transactions = transactionRepository.findAll();
 
@@ -107,6 +132,7 @@ public class TransactionsListParser {
         }).collect(Collectors.toList());
     }
 
+    //Returns List<Transaction>
     public List<Transaction> getTransactionsListValidFrom(String dateFromValid, List<Transaction> transactions) {
         return transactions.stream().filter(t ->
         {
@@ -117,5 +143,21 @@ public class TransactionsListParser {
             }
             return false;
         }).collect(Collectors.toList());
+    }
+
+    //If data is empty or null, empty String returned. If data exist, it is checked by trying to parse it.
+    public String getValidDateFormatElseEmpty(String dateToCheck) throws InvalidValueProvided {
+        if (dateToCheck != null && !dateToCheck.trim().isEmpty()) {
+            try {
+                Date date = dateFormat.parse(dateToCheck);
+                return dateToCheck;
+            } catch (ParseException e) {
+                e.printStackTrace();
+                throw new InvalidValueProvided("Invalid date format or value");
+            }
+        } else if (dateToCheck == null || dateToCheck.trim().isEmpty()) {
+            return "";
+        }
+        return "";
     }
 }

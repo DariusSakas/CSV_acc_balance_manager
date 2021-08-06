@@ -16,6 +16,7 @@ import java.util.*;
 @Service
 public class CSVService {
 
+    //Headers format. First line of new .csv file
     private static final CSVFormat format = CSVFormat.DEFAULT.withHeader(
             "Account", "Date", "Beneficiary", "Comment", "Amount", "Currency");
 
@@ -27,15 +28,22 @@ public class CSVService {
         this.transactionsListParser = transactionsListParser;
     }
 
+    //Convert Multipart csvFile into List<Transaction> and save each element to DB
     public void saveCSVTransactionsIntoDB(MultipartFile csvFile) throws Exception {
         List<Transaction> transactions = transactionsListParser.formatCSVFileIntoCSVModelList(csvFile);
         transactionRepository.saveAll(transactions);
     }
 
+    /*
+    ByteArrayInputStream contains an internal buffer that contains bytes that may be read from the stream.
+    Will check dataFrom and dateTo validation. If dates format valid continue, else exception.
+    transactionList data using PrintWriter is converted into bytes with defined format.
+    CSVPrinter prints all data from list into outputStream as bytes using .printTransactionsToCSV() method.
+     */
     public ByteArrayInputStream getCSVFile(String dateFrom, String dateTo) throws InvalidValueProvided, ParseException {
 
-        String dateFromValid = getValidDateFormatElseEmpty(dateFrom);
-        String dateToValid = getValidDateFormatElseEmpty(dateTo);
+        String dateFromValid = transactionsListParser.getValidDateFormatElseEmpty(dateFrom);
+        String dateToValid = transactionsListParser.getValidDateFormatElseEmpty(dateTo);
 
         List<Transaction> transactionList = transactionsListParser.getTransactionsList(dateFromValid, dateToValid);
 
@@ -44,15 +52,17 @@ public class CSVService {
             CSVPrinter csvPrinter = new CSVPrinter(new PrintWriter(outputStream), format);
             printTransactionsToCSV(transactionList, csvPrinter);
 
+            //Flushes the output stream and forces any buffered output bytes to be written out.
             csvPrinter.flush();
             return new ByteArrayInputStream(outputStream.toByteArray());
 
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException("Failed to import data to CSV from DB");
         }
     }
 
+    //.printRecord() takes each value of Transaction object and writes it as one array.
     private void printTransactionsToCSV(List<Transaction> transactionList, CSVPrinter csvPrinter) {
         transactionList.forEach(t ->
         {
@@ -64,25 +74,12 @@ public class CSVService {
                         t.getComment(),
                         t.getAmount(),
                         t.getCurrency()
-                        ));
+                ));
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
     }
 
-    public String getValidDateFormatElseEmpty(String dateToCheck) throws InvalidValueProvided {
-        if (dateToCheck != null && !dateToCheck.isEmpty()) {
-            try {
-                Date date = new SimpleDateFormat("dd/MM/yyyy").parse(dateToCheck);
-                return dateToCheck;
-            } catch (ParseException e) {
-                e.printStackTrace();
-                throw new InvalidValueProvided("Invalid date format or value");
-            }
-        } else if (dateToCheck == null || dateToCheck.isEmpty()) {
-            return "";
-        }
-        return "";
-    }
+
 }
