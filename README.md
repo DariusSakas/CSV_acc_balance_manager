@@ -9,7 +9,7 @@
  * .csv dummy file is hidden at resources/static/csvfile.csv
 ## Post and Get API's (prefer Postman):
  * for POST use address: localhost:9090/csv/postCSV
- form-data format, use request param key "csvFile", value set file (use provided .csv file or yours)
+ form-data format, use request param key file "csvFile" (use provided .csv file or yours)
  * for GET use address: localhost:9090/csv/getCSV
-  form-data format, optional request params: key "fromDate" and key "toDate"
+  form-data format, optional request params: key text "fromDate" and key text "toDate"
   provide date format dd/MM/yyyy
