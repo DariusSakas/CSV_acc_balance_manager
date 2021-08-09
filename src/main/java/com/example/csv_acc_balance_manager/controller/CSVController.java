@@ -57,6 +57,7 @@ public class CSVController {
     public ResponseEntity<?> getTransactionsFromDBasCSVFile(@RequestParam(value = "fromDate", required = false) String fromDate, @RequestParam(value = "toDate", required = false) String toDate) {
         try {
 
+
             // 1.Get file byte array using .getCSVFile() method.
             ByteArrayInputStream byteArrayInputStream = csvService.getCSVFile(fromDate, toDate);
             // 2. Convert byte array into file.
@@ -77,4 +78,5 @@ public class CSVController {
         }
         return new ResponseEntity<>("Unable to parse transactions from DB to .csv file. Check data value for dd/MM/yyyy", HttpStatus.OK);
     }
+
 }
